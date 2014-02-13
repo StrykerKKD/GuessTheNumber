@@ -7,16 +7,15 @@
         var ws = new WebSocket('ws://localhost:8080');
         ws.onmessage = function (event) {
             var msg=JSON.parse(event.data);
-            var $status = $('#status');
+            var $status = $('#status'),
+                $numberInput = $('#numberInput');
             switch(msg.type){
                 case 'init':
                     userID = msg.userID;
                     break;
-                case 'nowinner':
-                    //console.log("noWinner");
-                    break;
                 case 'winner':
                     //console.log("Winner");
+                    $numberInput.prop('disabled',true);
                     if(msg.userID == userID){
                         //console.log("You won!");
                         $status.text('You won!');
@@ -27,6 +26,7 @@
                     break;
                 case 'newround':
                     //console.log("newRound");
+                    $numberInput.prop('disabled',false);
                     $status.text('No winner!');
                     alert("New Round!");
                     break;
@@ -56,7 +56,7 @@
     </script>
 </head>
 <body>
-    <form>
+    <form id="guessForm">
         <input id="numberInput" type="text" name="guess" placeholder="Guess the number" autofocus="true">
         <input id="submitButton" type="submit" value="Guess it">
     </form>

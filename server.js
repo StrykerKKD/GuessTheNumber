@@ -33,8 +33,6 @@ wss.on('connection', function(ws) {
                     wss.clients[i].send(JSON.stringify({type:'newround'}));
                 }
             },3000);
-        }else{
-            ws.send(JSON.stringify({type:'nowinner'}));
         }
     });
 });
