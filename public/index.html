@@ -1,33 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body {
-            font-family: Tahoma, Geneva, sans-serif;
-        }
-
-        div {
-            display: inline;
-        }
-    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script>
-        function updateStats(memuse) {
-            document.getElementById('rss').innerHTML = memuse.rss;
-            document.getElementById('heapTotal').innerHTML = memuse.heapTotal;
-            document.getElementById('heapUsed').innerHTML = memuse.heapUsed;
-        }
-
-        var host = window.document.location.host.replace(/:.*/, '');
-        var ws = new WebSocket('ws://' + host + ':8080');
+        var userID = null;
+        var ws = new WebSocket('ws://localhost:8080');
         ws.onmessage = function (event) {
-            updateStats(JSON.parse(event.data));
+            var msg=JSON.parse(event.data);
+            var $status = $('#status');
+            switch(msg.type){
+                case 'init':
+                    userID = msg.userID;
+                    break;
+                case 'nowinner':
+                    //console.log("noWinner");
+                    break;
+                case 'winner':
+                    //console.log("Winner");
+                    if(msg.userID == userID){
+                        //console.log("You won!");
+                        $status.text('You won!');
+                    }else{
+                        //console.log("You lost!");
+                        $status.text('You lost!');
+                    }
+                    break;
+                case 'newround':
+                    //console.log("newRound");
+                    $status.text('No winner!');
+                    alert("New Round!");
+                    break;
+            }
         };
+
+        $(document).ready(function(){
+            $("#submitButton").click(function(event){
+                var $numberInput = $("#numberInput");
+                event.preventDefault();
+                ws.send(JSON.stringify({userID:userID,number:$numberInput.val()}));
+                $numberInput.val('');
+            });
+
+            $("#numberInput").keypress(function(event){
+                if(event.which == 13){
+                    event.preventDefault();
+                    ws.send(JSON.stringify({userID:userID,number:$(this).val()}));
+                    $(this).val('');
+                }else if(event.which <= 46 || event.which >= 65){
+                    event.preventDefault();
+                }
+            });
+        });
+
+
     </script>
 </head>
 <body>
-<strong>Server Stats</strong><br>
-RSS: <div id='rss'></div><br>
-Heap total: <div id='heapTotal'></div><br>
-Heap used: <div id='heapUsed'></div><br>
+    <form>
+        <input id="numberInput" type="text" name="guess" placeholder="Guess the number" autofocus="true">
+        <input id="submitButton" type="submit" value="Guess it">
+    </form>
+    <div>
+        <b>Status:</b>
+        <p id="status">No winner!</p>
+    </div>
 </body>
 </html>
